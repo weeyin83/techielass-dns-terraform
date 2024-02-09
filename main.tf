@@ -33,6 +33,14 @@ resource "azurerm_dns_cname_record" "M365_sip_record" {
   record              = "sipdir.online.lync.com"
 }
 
+resource "azurerm_dns_cname_record" "M365_authentication" {
+  name                = "msoid"
+  zone_name           = azurerm_dns_zone.dns-zone.name
+  resource_group_name = var.resource_group_name
+  ttl                 = var.ttl
+  record              = "clientconfig.microsoftonline-p.net"
+}
+
 resource "azurerm_dns_srv_record" "SIP_record_1" {
   name                = "_sipfederationtls._tcp.techielass.com"
   zone_name           = azurerm_dns_zone.dns-zone.name
@@ -59,15 +67,6 @@ resource "azurerm_dns_srv_record" "SIP_record_2" {
   ttl = var.ttl
 }
 
-resource "azurerm_dns_txt_record" "M365_txt_record" {
-  name                = "@"
-  zone_name           = azurerm_dns_zone.dns-zone.name
-  resource_group_name = var.resource_group_name
-  record {
-    value = "v=spf1  include:spf.protection.outlook.com include:mailgun.org -all"
-  }
-  ttl = var.ttl
-}
 
 resource "azurerm_dns_cname_record" "M365_auto_discover_record" {
   name                = "autodiscover"
@@ -102,7 +101,7 @@ resource "azurerm_dns_cname_record" "M365_lync" {
 }
 
 ##
-## Ghost sending email record information
+## DMARC
 ##
 resource "azurerm_dns_txt_record" "ghost_email" {
   name                = "_dmarc"
@@ -113,6 +112,39 @@ resource "azurerm_dns_txt_record" "ghost_email" {
   }
   ttl = var.ttl
 }
+
+resource "azurerm_dns_cname_record" "DKIM1" {
+  name                = "selector1._domainkey.techielass.com"
+  zone_name           = azurerm_dns_zone.dns-zone.name
+  resource_group_name = var.resource_group_name
+  ttl                 = var.ttl
+  record              = "selector1-techielass-com._domainkey.sarahlean.onmicrosoft.com"
+
+}
+
+resource "azurerm_dns_cname_record" "DKIM2" {
+  name                = "selector2._domainkey.techielass.com"
+  zone_name           = azurerm_dns_zone.dns-zone.name
+  resource_group_name = var.resource_group_name
+  ttl                 = var.ttl
+  record              = "selector2-techielass-com._domainkey.sarahlean.onmicrosoft.com"
+
+}
+
+
+resource "azurerm_dns_txt_record" "M365_SPF" {
+  name                = "@"
+  zone_name           = azurerm_dns_zone.dns-zone.name
+  resource_group_name = var.resource_group_name
+  record {
+    value = "v=spf1  include:spf.protection.outlook.com include:mailgun.org -all"
+  }
+  ttl = var.ttl
+}
+
+##
+## Ghost sending email record information
+##
 
 resource "azurerm_dns_txt_record" "ghost_email_2" {
   name                = "mx._domainkey.ghost"
@@ -149,6 +181,14 @@ resource "azurerm_dns_cname_record" "blog_dns" {
   resource_group_name = var.resource_group_name
   ttl                 = var.ttl
   record              = "techielass.ghost.io"
+}
+
+resource "azurerm_dns_a_record" "blog_dns" {
+  name                = "@"
+  zone_name           = azurerm_dns_zone.dns-zone.name
+  resource_group_name = var.resource_group_name
+  ttl                 = var.ttl
+  records             = ["178.128.137.126"]
 }
 
 ##
